@@ -9,7 +9,7 @@ st.title("Dashboard Hafalan Mahasiswa")
 # Load Data
 @st.cache_data
 def load_data():
-    return pd.read_parquet("dataset/Kategori_Hafalan_2025.parquet")
+    return pd.read_parquet("dataset/data.parquet")
 
 df = load_data()
 
