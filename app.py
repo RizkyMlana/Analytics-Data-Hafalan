@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(page_title="Dashboard Hafalan Mahasiswa", layout="wide")
-
 st.title("Dashboard Hafalan Mahasiswa")
 
 # Load Data
@@ -25,7 +24,7 @@ else:
     fac_data = df
     prodi_selected = "Semua"
 
-# Data Filter
+# Filter Data
 if fakultas_selected == "Semua":
     filtered_data = df
 elif prodi_selected == "Semua":
@@ -33,7 +32,7 @@ elif prodi_selected == "Semua":
 else:
     filtered_data = fac_data[fac_data["Program Studi"] == prodi_selected]
 
-# Ringkasan Statistik
+# Statistik
 total_mahasiswa = len(filtered_data)
 total_Ikhwan = len(filtered_data[filtered_data["Keterangan"] == "Ikhwan"])
 total_Akhwat = len(filtered_data[filtered_data["Keterangan"] == "Akhwat"])
@@ -44,83 +43,64 @@ col2.metric("Ikhwan", total_Ikhwan)
 col3.metric("Akhwat", total_Akhwat)
 
 # Pie Chart Gender
+st.markdown("### Distribusi Gender")
 if fakultas_selected == "Semua":
-    st.markdown("### Distribusi Gender (Universitas)")
-    gender_counts = df["Keterangan"].value_counts().reset_index()
-    gender_counts.columns = ["Keterangan", "Jumlah"]
-    fig_gender = px.pie(
-        gender_counts, values="Jumlah", names="Keterangan",
-        title="Distribusi Gender Seluruh Universitas",
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    st.plotly_chart(fig_gender, use_container_width=True)
-
+    data_gender = df
+    title_gender = "Distribusi Gender Seluruh Universitas"
+    color_seq = px.colors.qualitative.Pastel
 elif prodi_selected == "Semua":
-    st.markdown(f"### Distribusi Gender ({fakultas_selected})")
-    gender_counts = fac_data["Keterangan"].value_counts().reset_index()
-    gender_counts.columns = ["Keterangan", "Jumlah"]
-    fig_gender = px.pie(
-        gender_counts, values="Jumlah", names="Keterangan",
-        title=f"Distribusi Gender {fakultas_selected}",
-        color_discrete_sequence=px.colors.qualitative.Set3
-    )
-    st.plotly_chart(fig_gender, use_container_width=True)
-
+    data_gender = fac_data
+    title_gender = f"Distribusi Gender {fakultas_selected}"
+    color_seq = px.colors.qualitative.Set3
 else:
-    st.markdown(f"### Distribusi Gender ({prodi_selected})")
-    gender_counts = filtered_data["Keterangan"].value_counts().reset_index()
-    gender_counts.columns = ["Keterangan", "Jumlah"]
-    fig_gender = px.pie(
-        gender_counts, values="Jumlah", names="Keterangan",
-        title=f"Distribusi Gender {prodi_selected}",
-        color_discrete_sequence=px.colors.qualitative.Vivid
-    )
-    st.plotly_chart(fig_gender, use_container_width=True)
+    data_gender = filtered_data
+    title_gender = f"Distribusi Gender {prodi_selected}"
+    color_seq = px.colors.qualitative.Vivid
 
-# Distribusi Hafalan
-st.markdown("### Distribusi Kategori Hafalan")
+gender_counts = data_gender["Keterangan"].value_counts().reset_index()
+gender_counts.columns = ["Keterangan", "Jumlah"]
+
+fig_gender = px.pie(
+    gender_counts, values="Jumlah", names="Keterangan",
+    title=title_gender,
+    color_discrete_sequence=color_seq
+)
+fig_gender.update_traces(textinfo='label+percent+value')
+st.plotly_chart(fig_gender, use_container_width=True)
+
+# Distribusi Juz 
+st.markdown("### Distribusi Jumlah Mahasiswa per Jumlah Juz")
+
+def plot_juz_distribution(data, title,color_scale=None):
+    df_count = data.groupby("Hafalan").size().reset_index(name="Jumlah Mahasiswa")
+    if color_scale is None:
+        color_scale = ["#004280",  "#3093EC",  "#E4F5FF"]
+    fig = px.bar(
+        df_count.sort_values("Hafalan"),
+        x="Hafalan", y="Jumlah Mahasiswa",
+        text_auto=True,
+        color="Hafalan",
+        title=title,
+        color_continuous_scale=color_scale
+    )
+    fig.update_layout(
+        height=400,
+        bargap=0.4 if len(df_count) <= 5 else 0.25,
+        xaxis_title="Jumlah Juz",
+        yaxis_title="Jumlah Mahasiswa",
+        margin=dict(l=30, r=30, t=60, b=60)
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 if fakultas_selected == "Semua":
-    cat_global = df["Hafalan"].value_counts().reset_index()
-    cat_global.columns = ["Kategori Hafalan", "Jumlah"]
-    fig_cat_global = px.bar(
-        cat_global.sort_values("Kategori Hafalan"),
-        x="Kategori Hafalan", y="Jumlah",
-        title="Distribusi Kategori Hafalan (Universitas)",
-        text_auto=True,
-        color="Kategori Hafalan",
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    st.plotly_chart(fig_cat_global, use_container_width=True)
-
+    plot_juz_distribution(df, "Distribusi Jumlah Mahasiswa per Jumlah Juz (Universitas)")
 elif prodi_selected == "Semua":
-    cat_fak = fac_data["Hafalan"].value_counts().reset_index()
-    cat_fak.columns = ["Kategori Hafalan", "Jumlah"]
-    fig_cat_fak = px.bar(
-        cat_fak.sort_values("Kategori Hafalan"),
-        x="Kategori Hafalan", y="Jumlah",
-        title=f"Distribusi Kategori Hafalan ({fakultas_selected})",
-        text_auto=True,
-        color="Kategori Hafalan",
-        color_discrete_sequence=px.colors.qualitative.Set3
-    )
-    st.plotly_chart(fig_cat_fak, use_container_width=True)
-
+    plot_juz_distribution(fac_data, f"Distribusi Jumlah Mahasiswa per Jumlah Juz ({fakultas_selected})")
 else:
-    cat_prodi = filtered_data.groupby(["Hafalan", "Keterangan"]).size().reset_index(name="Jumlah")
-    fig_cat_prodi = px.bar(
-        cat_prodi.sort_values("Hafalan"),
-        x="Hafalan", y="Jumlah", color="Keterangan",
-        barmode="group",
-        title=f"Distribusi Kategori Hafalan ({prodi_selected}) Berdasarkan Gender",
-        text_auto=True,
-        color_discrete_sequence=px.colors.qualitative.Vivid
-    )
-    st.plotly_chart(fig_cat_prodi, use_container_width=True)
+    plot_juz_distribution(filtered_data, f"Distribusi Jumlah Mahasiswa per Jumlah Juz ({prodi_selected})", color_scale=["#E58606","#5D69B1"])
 
 # Tabel Mahasiswa
 st.markdown("### Data Mahasiswa")
-
 st.dataframe(
     filtered_data[["Nama", "Program Studi", "Keterangan", "Hafalan"]],
     use_container_width=True,
