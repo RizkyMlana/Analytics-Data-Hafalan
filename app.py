@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Dashboard Hafalan Mahasiswa", layout="wide")
-st.title("Dashboard Hafalan Mahasiswa")
+st.set_page_config(page_title="DASHBOARD HAFIDH MAHASISWA UMS 2025", layout="wide")
+st.title("DASHBOARD HAFIDH MAHASISWA UMS 2025")
 
 # Load Data
 @st.cache_data
@@ -69,7 +69,7 @@ fig_gender.update_traces(textinfo='label+percent+value')
 st.plotly_chart(fig_gender, use_container_width=True)
 
 # Distribusi Juz 
-st.markdown("### Distribusi Jumlah Mahasiswa per Jumlah Juz")
+st.markdown("### Distribusi Hafidh Mahasiswa")
 
 def plot_juz_distribution(data, title,color_scale=None):
     df_count = data.groupby("Hafalan").size().reset_index(name="Jumlah Mahasiswa")
@@ -100,7 +100,7 @@ else:
     plot_juz_distribution(filtered_data, f"Distribusi Jumlah Mahasiswa per Jumlah Juz ({prodi_selected})", color_scale=["#E58606","#5D69B1"])
 
 # Tabel Mahasiswa
-st.markdown("### Data Mahasiswa")
+st.markdown("### Daftar Hafidh")
 st.dataframe(
     filtered_data[["Nama", "Program Studi", "Keterangan", "Hafalan"]],
     use_container_width=True,
