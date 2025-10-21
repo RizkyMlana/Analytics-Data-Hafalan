@@ -1,14 +1,41 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+import io
+from google.oauth2.credentials import Credentials
+
+
+
+
 
 st.set_page_config(page_title="DASHBOARD HAFIDH MAHASISWA UMS 2025", layout="wide")
 st.title("DASHBOARD HAFIDH MAHASISWA UMS 2025")
-
 # Load Data
+
+creds = Credentials(
+    None,
+    refresh_token=st.secrets["gdrive"]["refresh_token"],
+    client_id=st.secrets["gdrive"]["client_id"],
+    client_secret=st.secrets["gdrive"]["client_secret"],
+    token_uri="https://oauth2.googleapis.com/token"
+)
+
+service = build('drive', 'v3', credentials=creds)
+file_id = "1S9RLquCPDeWJadu3W7LCEyjyciqJesa-"
+request = service.files().get_media(fileId = file_id)
+fh = io.BytesIO()
+downloader = MediaIoBaseDownload(fh, request)
+
+done = False
+while not done:
+    status, done = downloader.next_chunk()
+
 @st.cache_data
 def load_data():
-    return pd.read_parquet("dataset/data.parquet")
+    fh.seek(0)
+    return pd.read_parquet(fh)
 
 df = load_data()
 
